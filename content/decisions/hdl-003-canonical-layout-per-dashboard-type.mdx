@@ -1,0 +1,29 @@
+---
+ref: HDL-003
+title: A canonical layout per dashboard type
+project: hcl-design-library
+status: shipped
+authority: owned
+expresses: []
+supersedes: null
+supersededBy: null
+relatedTo: [HDL-004]
+evidencedBy: [hcl-layout-patterns]
+resolved: true
+---
+
+## Context
+
+The first question a designer faces is not which components to use — it is how the page should be organised. With no reference, structure was invented from scratch each time or reconstructed by hunting through old files for something similar.
+
+## Decision
+
+Define a canonical page structure for each kind of dashboard the team built, rather than a component index alone.
+
+## Alternatives considered
+
+**A component library without layout guidance.** Not adopted. It answers what exists, not how a page should be composed, which is the question that actually blocks a new designer.
+
+## Consequences
+
+Structure is decided once per dashboard type instead of once per project. The layouts assume the foundations, so the three artifacts have to move together when any of them changes.

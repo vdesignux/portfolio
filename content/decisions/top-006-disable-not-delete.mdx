@@ -1,0 +1,41 @@
+---
+ref: TOP-006
+title: Users and roles are disabled, not deleted
+project: travel-operations-platform
+status: shipped
+authority: owned
+expresses: []
+supersedes: null
+supersededBy: null
+relatedTo: [TOP-002, TOP-003]
+evidencedBy: [permission-tier-model]
+resolved: false
+---
+
+## Context
+
+Every action on a package carries attribution — who added an item, who sent it for review, who approved, who booked. The audit log is what makes approvals verifiable, and what carries the record where state cannot, as with post-approval substitution.
+
+Deleting a user breaks that. Items they added lose their author, and packages that closed correctly become unverifiable in retrospect.
+
+Working against that, the platform handles healthcare professionals' personal data, and the requirements include account deletion and data download obligations. Indefinite retention is not defensible either.
+
+## Decision
+
+Disable is the standard operation for both users and custom roles, and occupies the destructive slot in the permission matrix. Hard deletion exists but is restricted to Admin and gated on a retention period elapsing.
+
+## Alternatives considered
+
+**Hard delete on request.** Rejected. Orphans package history and removes the attribution the audit trail depends on.
+
+**Disable only, with no deletion path.** Rejected. Leaves an erasure obligation with no mechanism.
+
+**Anonymise in place.** Not adopted. Would preserve the shape of the audit trail while removing the person, satisfying both constraints without a time gate. Arguably the better answer.
+
+## Consequences
+
+Two operations with different authority and different timing rather than one. Attribution survives the common case of someone leaving the organisation, and erasure remains possible without being casual. The cost is that the user list accumulates and needs filtering, and that "deleted" means two different things depending on elapsed time.
+
+## Open questions
+
+Whether disable-not-delete was a deliberate call at the time or a consequence of the audit model has not been confirmed against project records. Anonymisation in place is worth revisiting.

@@ -1,0 +1,41 @@
+---
+ref: ASO-001
+title: Inline filters over nested filters
+project: author-search-outreach
+status: shipped
+authority: owned
+expresses: [legibility-over-capability]
+supersedes: null
+supersededBy: null
+relatedTo: [ASO-005]
+evidencedByIteration: [filter-architecture]
+resolved: true
+---
+
+## Context
+
+Editors search a corpus of academic authors and papers, and many of them are fluent in the query syntax the engine accepts. The first filter design was a flat list of conditions, which cannot express a parenthesis — so the interface could represent less than the engine could.
+
+Closing that gap was the brief for the filter work. Three directions were carried far enough to compare: inline filters applied in the results view, a compact filter dropdown for single conditions, and a nested modal builder supporting groups and mixed operators.
+
+Nested filters closed the gap completely. Four structural decisions made them work: every top-level item is a group, so the connector column never shifts; group boundaries draw precedence rather than requiring it to be typed; operators inherit from the group unless deliberately changed; and the leading row renders as a fixed label rather than a disabled control.
+
+## Decision
+
+Ship inline filters. Numbered rows carry the sequence that nesting carried with indentation, and the collapsed state returns the page to the results.
+
+## Alternatives considered
+
+**Nested filters.** Rejected despite being the most expressive option. The modal hid the query behind the results, which made structure something to parse rather than read, and moved verification a click away from the results it produced.
+
+**Filter dropdown alone.** Not adopted as the primary model. It serves quick single-condition filtering and coexists with the inline builder rather than replacing it.
+
+## Consequences
+
+The interface still cannot express everything the engine accepts. That gap is now a deliberate position rather than an oversight: a query an editor cannot read back is one whose results they cannot verify, and an unverifiable cohort is worse than a narrower one.
+
+The four structural decisions taken during the nested exploration were not wasted. Group semantics, operator inheritance and the label-not-control rule carried into the shipped rows.
+
+## Open questions
+
+Grouping stops at one level of nesting. This covers most real queries, but not all, and there is no way to read the query back as syntax for users who would rather do so. Both are unconfirmed against the shipped build.

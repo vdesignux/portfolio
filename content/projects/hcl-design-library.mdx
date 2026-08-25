@@ -1,0 +1,97 @@
+---
+title: HCL design library
+subtitle: A design language for Power BI
+domain: Business intelligence
+role: Design system, research and synthesis
+period: 2022
+status: shipped, adopted
+claim: Design system foundations, layout taxonomy, and visualisation guidance for a BI platform
+thesis: "Every dashboard was designed from scratch, with no shared reference for what Power BI could render."
+authorityContext: Built under a senior designer's direction. Research, synthesis, and written guidance owned throughout.
+order: 3
+published: true
+---
+
+## Overview
+
+The team designed dashboards that shipped in Power BI. Power BI has its own typography, its own colour behaviour and its own limits on what a chart can do — and a designer who doesn't know those constraints produces work that can't be built as drawn.
+
+There was no reference for any of it. Every designer decided independently what a dashboard should look like, which chart suited which question, what colours to use. Work shipped in inconsistent palettes and type. A new joiner learned the platform by being taught, one person at a time.
+
+The brief was to build the standard. This is what came out of it.
+
+## Foundations
+
+Colour, typography, iconography.
+
+The palette was derived from Microsoft's own logo set — every Microsoft blue standardised into a single defined scale — so that output would sit natively inside the environment it renders in rather than fighting it. Typography was locked to Segoe UI, Power BI's own typeface, with defined roles and colour treatment for each level.
+
+These aren't aesthetic choices. They are fidelity decisions: the closer the design language sits to the platform, the smaller the gap between what is designed and what gets built.
+
+<Artifact slug="hcl-foundations" />
+
+<Figure
+  src="/media/hcl/foundations.png"
+  alt="Colour palette scale and type scale for the design library"
+  caption="A palette derived from the platform's own colour set, not chosen against it."
+/>
+
+## Domain library
+
+Visualisations gathered from every project the team had delivered, organised by domain, alongside new ones built where the existing set had gaps.
+
+This turned scattered institutional knowledge into something a person could look at. Work that previously lived in individual designers' memories of past projects became a reference anyone could open.
+
+<Artifact slug="hcl-domain-library" />
+
+<Figure
+  src="/media/hcl/domain-library.png"
+  alt="Domain library of visualisations organised by business area"
+  caption="Institutional memory, made openable."
+/>
+
+## Layout patterns
+
+Canonical page structures for each kind of dashboard the team built.
+
+The question a designer starts with isn't which components to use — it is how the page should be organised. Answering that in advance, per dashboard type, meant nobody had to invent structure from scratch or hunt through old files to see how a similar thing had been laid out before.
+
+<Artifact slug="hcl-layout-patterns" />
+
+<Figure
+  src="/media/hcl/layout-patterns.png"
+  alt="Canonical dashboard layout grids by dashboard type"
+  caption="Structure decided once, per dashboard type."
+/>
+
+## Visualisation guidance
+
+A written guide to which chart answers which kind of data question.
+
+Each entry names the visualisation type, explains what it is for, and shows a worked example — numeric overview, geographical overview, and so on through the set. The entries were researched from scratch, synthesised from what the team had learned across previous projects, and written as reasoning rather than as reference.
+
+This is the section worth pointing at. A component library tells you what exists. This tells you what to choose and why — which is the harder question, and the one a new designer actually needs answered.
+
+<Artifact slug="hcl-visualisation-guidance" />
+
+<Figure
+  src="/media/hcl/visualisation-guidance.png"
+  alt="Entries from the visualisation guide with worked examples"
+  caption="Guidance written as prose, because the useful part is the reasoning."
+/>
+
+## What changed
+
+Before, every designer solved the same problems independently and arrived at different answers. After, there was a process: what layout does this dashboard type use, which visualisation fits this data, what colour and type apply.
+
+New joiners stopped needing to be taught. The reference did it.
+
+## What carries forward
+
+This was a first design system, built under a senior designer's direction, and the thing it taught has outlasted the specifics.
+
+The library worked because it encoded the constraints of the medium — Power BI's typography, its colours, what it can actually render — so that designs could be built as drawn. Every system since has come back to the same question: what can the thing underneath actually do, and does the interface tell the truth about it.
+
+<Callout type="provenance">
+Internal work. Client projects from this period are not shown.
+</Callout>

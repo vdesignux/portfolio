@@ -1,0 +1,31 @@
+---
+ref: HDL-001
+title: Palette derived from the platform's own colour set
+project: hcl-design-library
+status: shipped
+authority: directed
+expresses: [truth-at-the-boundary]
+supersedes: null
+supersededBy: null
+relatedTo: [HDL-002]
+evidencedBy: [hcl-foundations]
+resolved: true
+---
+
+## Context
+
+Dashboards designed by the team shipped in Power BI, which has its own colour behaviour. There was no shared palette, and work shipped in inconsistent colour across projects.
+
+## Decision
+
+Derive the palette from Microsoft's own logo set, standardising every Microsoft blue into a single defined scale.
+
+## Alternatives considered
+
+**An independent brand palette.** Not adopted. Colour chosen against the platform rather than from it widens the gap between what is designed and what can be built.
+
+## Consequences
+
+Output sits natively inside the environment it renders in. The palette is a fidelity decision rather than an aesthetic one, and it set the pattern the typography decision followed.
+
+Colour range is bounded by what the platform's own set contains, which is a real limit on expression and the intended trade.

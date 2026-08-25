@@ -1,0 +1,37 @@
+---
+ref: ASO-005
+title: Controls the data layer cannot honour are not rendered
+project: author-search-outreach
+status: shipped
+authority: owned
+expresses: [truth-at-the-boundary]
+supersedes: null
+supersededBy: null
+relatedTo: [ASO-001]
+evidencedBy: []
+resolved: true
+---
+
+## Context
+
+The query engine supports a good portion of the syntax editors already know — Boolean operators, parentheses grouping, phrase search, date ranges — and roughly half the field tags are unsupported, for three different reasons. Some data is not stored. Some is stored but not exposed by the parser. Some syntax features are not implemented.
+
+A uniform filter interface would offer the same set of controls for every field and fail unevenly depending on which field was chosen.
+
+## Decision
+
+Where a filter does not take conditional operators, the operator selector is not rendered at all; the value field follows directly from the filter selection.
+
+Alongside it: a condition added without a value defaults its operator and stays disabled until a value arrives, so a half-built condition cannot quietly participate in a query.
+
+## Alternatives considered
+
+**Render the control disabled.** Rejected. A disabled control still claims the capability exists and invites the user to work out why it is unavailable.
+
+**Render it and fail at query time.** Rejected. Moves the failure past the point of intent and produces results the user cannot account for.
+
+## Consequences
+
+The filter row has to be built as a component with optional slots rather than a fixed layout, since the shape of a row now varies by field. That component carried across all three filter surfaces.
+
+The interface matches the support documentation, which is explicit about what the system can and cannot do and why.

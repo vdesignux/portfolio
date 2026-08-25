@@ -1,0 +1,14 @@
+---
+slug: model-shapes-scope
+statement: When the permission model can't express the system model, the permission model is what changes.
+order: 4
+published: true
+---
+
+Phasing decisions are usually made against effort. Ship the coarse version first, add granularity later. That works when the coarse version is a smaller instance of the same thing.
+
+It fails when the coarse version cannot represent the model at all. Menu-level access control answers whether a role can reach a module. It cannot answer whether that role can act on the object in front of it — and if the object's state governs what each role may do, the permission model as specified simply cannot describe the system as designed.
+
+At that point the choice is not between more scope and less. It is between changing the permission model and abandoning the system model. Moving the rules into application logic looks like a third option, but it makes them invisible to administrators and unauditable, which is usually the failure the object model was introduced to fix.
+
+The generalisation: scope is negotiable, representational adequacy is not. A phase-one build that cannot express the model is not an early version of it.

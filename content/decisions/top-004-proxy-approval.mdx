@@ -1,0 +1,37 @@
+---
+ref: TOP-004
+title: Proxy confirmation by the travel user is a first-class transition
+project: travel-operations-platform
+status: shipped
+authority: owned
+expresses: [exceptions-never-silent]
+supersedes: null
+supersededBy: null
+relatedTo: [TOP-003]
+evidencedBy: [package-lifecycle-state-machine, state-transition-table]
+resolved: true
+---
+
+## Context
+
+Packages cannot progress to booking without doctor approval. Doctors are practising clinicians and are frequently unresponsive within the window a conference allows — both inventory and airfare degrade while a package waits in Under Review. A package that cannot move is worse than one that moves with a record of why.
+
+## Decision
+
+Under Review to Active via travel user confirmation is a first-class transition, sitting beside Under Review to Active via doctor approval. The travel user must supply a written reason. The doctor is notified.
+
+## Alternatives considered
+
+**Timeout auto-approval.** Rejected. Silent, and attributable to no one.
+
+**Admin-only proxy.** Not adopted. Adds a routing step at the moment speed is the entire justification.
+
+**No proxy path.** Rejected. Leaves packages stranded and pushes the workaround offline — the failure mode the platform was built to end.
+
+## Consequences
+
+Approval as compliance evidence weakens on this path: the record shows that a travel user confirmed on the doctor's behalf, with a reason, not that the doctor agreed. The mandatory reason and the notification keep it accountable rather than invisible.
+
+## Open questions
+
+On the shipped Active screen the stepper renders "Under review" as complete whether the doctor approved or a travel user confirmed. The distinction lives only in the audit log. A marker on the package would have preserved it where people actually look — the clearest thing to change.

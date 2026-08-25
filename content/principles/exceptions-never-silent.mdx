@@ -1,0 +1,20 @@
+---
+slug: exceptions-never-silent
+statement: The system permits exceptions, but never silent ones.
+order: 1
+published: true
+---
+
+Every real system needs exceptions. Inventory runs out after a plan is approved. Budgets get exceeded for good reasons. People go unresponsive against a deadline that will not move.
+
+A system that forbids these does not prevent them. It pushes them offline — into email, phone calls and spreadsheets — where nothing can see them, nothing can verify them, and the record of what actually happened lives in someone's memory.
+
+So the question is not whether to permit exceptions. It is whether the system can hold them.
+
+Each one gets four things: an authorized path, a mandatory written reason, a notification to everyone affected, and a record that survives the transaction.
+
+The evidence for this is not any single decision. It is that the same shape appeared three times on one project, months apart, on problems with nothing in common — inventory contention, sponsor budget overage, and an unresponsive approver. Consistency across unrelated problems is what makes it a position rather than a preference.
+
+## Where it strains
+
+The principle says nothing about *where* the record lives, and that turned out to matter. On the travel operations platform, two of the three exceptions produce a record only in the audit log, leaving package state unable to distinguish an approved plan from a substituted or proxy-confirmed one. Not silent, but buried — which is the failure mode the principle should have caught and did not.

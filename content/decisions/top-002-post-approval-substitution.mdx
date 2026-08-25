@@ -1,0 +1,41 @@
+---
+ref: TOP-002
+title: Post-approval substitution is authorized, not re-approved
+project: travel-operations-platform
+status: shipped
+authority: proposed
+expresses: [exceptions-never-silent]
+supersedes: null
+supersededBy: null
+relatedTo: [TOP-001]
+evidencedBy: [package-lifecycle-state-machine, critical-dev-rules]
+resolved: true
+---
+
+## Context
+
+TOP-001 permits an approved package to fail at booking when inventory is exhausted. The travel user must substitute an alternative.
+
+Critical Dev Rule 1 states that a package edited after approval must return to Under Review. Substitution violates that rule. The initial design honoured it — return to the doctor for re-approval. Client discussion established that scarcity makes waiting costly: the alternative disappears while approval is pending. Doctors approve attendance with reasonable accommodation, not a named hotel.
+
+## Decision
+
+The travel user may rebook without re-approval. A written reason is mandatory. The substitution is recorded in the audit log and notified to the doctor and the admin.
+
+## Alternatives considered
+
+**Return to Under Review.** Rejected on timing. Re-approval under scarcity risks losing the substitute too.
+
+**Silent substitution.** Rejected. An approval that no longer describes reality, with no record, is the spreadsheet problem restored.
+
+## Consequences
+
+A documented carve-out from a stated invariant, narrow by construction: it applies only where inventory vanished after the gate closed. Structural changes before booking still re-enter approval via Unlock.
+
+Package state is unchanged by the substitution — state tracks progress through booking, not conformance to what was approved. Detecting divergence requires reading the audit log.
+
+## Open questions
+
+Confirmation data lives as attributes on the package item rather than as its own object. Rebooking overwrites; history lives in the audit trail. Modelling confirmations as objects, with an item holding several over time, would let the original and the replacement be shown side by side without reading the log.
+
+This decision supersedes an earlier design requiring doctor re-approval. That earlier design was never shipped, so it is recorded here rather than as its own decision.

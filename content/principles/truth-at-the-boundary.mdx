@@ -1,0 +1,18 @@
+---
+slug: truth-at-the-boundary
+statement: Don't offer what the layer underneath can't deliver.
+order: 2
+published: true
+---
+
+Every interface sits on top of something with limits — a parser, an integration, a rendering engine, a data model. Those limits are rarely uniform. Half the fields are queryable, some flights are modifiable, some chart types render as drawn.
+
+The tempting move is to present a uniform surface anyway, because uniformity looks cleaner in a mockup. It fails unevenly at the point of use, and the user carries the cost of working out why.
+
+The alternative is to let the boundary show. A control the data layer cannot honour is not rendered at all. An item that cannot be modified says so, names the specific segment, and hands over a structured path to a person. A palette is derived from what the platform can actually paint.
+
+This is the principle with the longest reach in this body of work — three projects, four years apart, in three unrelated domains, arriving at the same rule independently. No single case study can make that argument.
+
+## What it costs
+
+Non-uniform interfaces are harder to build and harder to specify. A filter row whose shape varies by field has to be a component with optional slots rather than a fixed layout. That cost is real, and it is the trade.

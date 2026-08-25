@@ -1,0 +1,29 @@
+---
+ref: HDL-002
+title: Typography locked to the platform typeface
+project: hcl-design-library
+status: shipped
+authority: directed
+expresses: [truth-at-the-boundary]
+supersedes: null
+supersededBy: null
+relatedTo: [HDL-001]
+evidencedBy: [hcl-foundations]
+resolved: true
+---
+
+## Context
+
+Power BI renders in its own typeface. Designs drawn in another face either could not be built as drawn or shipped altered, and type treatment varied between designers with nothing to refer to.
+
+## Decision
+
+Lock typography to Segoe UI, the platform's own typeface, with defined roles and colour treatment for each level of the scale.
+
+## Alternatives considered
+
+**A separate display face for design presentation.** Not adopted. It makes design reviews misleading about the shipped result.
+
+## Consequences
+
+What is designed is what gets built. The scale gave the team a shared vocabulary for hierarchy, which the layout patterns then assumed.

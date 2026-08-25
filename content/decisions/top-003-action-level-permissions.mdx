@@ -1,0 +1,43 @@
+---
+ref: TOP-003
+title: Action-level permissions pulled into Phase 1
+project: travel-operations-platform
+status: shipped
+authority: owned
+expresses: [model-shapes-scope]
+supersedes: null
+supersededBy: null
+relatedTo: []
+evidencedBy: [permission-tier-model, package-lifecycle-state-machine]
+resolved: true
+---
+
+## Context
+
+The business requirements document specified access control at three levels: menu, actions, and fields. Only menu-level was in Phase 1; action and field granularity were deferred.
+
+In parallel, the Package was designed as a stateful object where state governs what each role may do. Under Review means the doctor can read and comment but not restructure. Draft means the travel user can modify freely but cannot book. Active unlocks booking.
+
+Menu-level permissions cannot express this. A menu toggle answers whether a role can reach the Package module — it cannot answer whether that role can edit the package in front of it. The permission model as specified could not represent the system model as designed.
+
+## Decision
+
+Pull action-level permissions into Phase 1. Ship a resource-by-action matrix with Read, Create, Update, Delete and Approve; system-level permissions locked out of custom roles; inheritance defaults configurable per role; a required scope field on every role.
+
+## Alternatives considered
+
+**Menu-level only, with state rules held in application logic.** Rejected. The rules become invisible to administrators and unauditable — the same failure the Package was designed to eliminate.
+
+**Defer the state machine to match the permission model.** Rejected. State was the core of the reframe.
+
+## Consequences
+
+Phase 1 scope increased and role creation became a multi-step form. In exchange, permissions became inspectable: an administrator can read what a role can do without reading code, and the same matrix that governs the interface governs API authorization.
+
+Three consequences worth naming separately.
+
+**Approve is a distinct action, not a variant of Update.** Approval moves state and carries compliance weight, so it is separately grantable.
+
+**Permission tiers mirror the object hierarchy.** System, Event, Package. A role scoped to a tier cannot hold permissions above it — a privilege ceiling by construction rather than by validation rule.
+
+**State transitions are grantable permissions.** Send package for review. Approve event. Submit package over budget. The state machine defines what is possible; the permission model defines who can trigger it.

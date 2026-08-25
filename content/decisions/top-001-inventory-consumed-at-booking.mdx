@@ -1,0 +1,41 @@
+---
+ref: TOP-001
+title: Inventory is consumed at booking, not reserved on draft
+project: travel-operations-platform
+status: shipped
+authority: owned
+expresses: []
+supersedes: null
+supersededBy: null
+relatedTo: [TOP-002]
+evidencedBy: [core-object-model, hotel-source-taxonomy]
+resolved: false
+---
+
+## Context
+
+Hotel inventory is pre-negotiated and curated into blocks. Blocks divide into sub-blocks by room type, each with a count and a price. Blocks are one of five hotel sources; the constraint on travel users is budget, not inventory, with blocks presented first as the path of least resistance.
+
+Packages progress independently per doctor. Multiple travel users assemble in parallel against the same finite sub-blocks. Draft is explicitly non-committing.
+
+The question: when does a selected room leave the available pool?
+
+## Decision
+
+Inventory is consumed at booking. Selecting a room into a Draft or Under Review package does not reserve it.
+
+## Alternatives considered
+
+**Reserve on Draft.** Rejected. An abandoned draft holds inventory indefinitely. Mitigating that needs expiry timers, release warnings and an administrative override — substantial machinery for a state that is explicitly non-committing.
+
+**Reserve on Under Review.** Not adopted, and the strongest rejected option in hindsight. It is the moment the doctor is asked to commit to a specific plan, so it is the moment the system's promise should hold. The window is bounded, which avoids the idle-draft problem.
+
+## Consequences
+
+Two travel users can assemble against the same last rooms, both obtain approval, and one discovers at booking that inventory is gone. The failure surfaces after approval — the category of failure the package state machine was built to prevent, relocated from the document layer to the inventory layer.
+
+This applies to block-sourced hotels only. Hotels sourced from live search fail differently, at availability. Two failure modes, one substitution mechanism.
+
+## Open questions
+
+This decision created the problem TOP-002 resolves. Revisiting it in favour of reservation on Under Review would remove the need for TOP-002 entirely. Unresolved at handoff.

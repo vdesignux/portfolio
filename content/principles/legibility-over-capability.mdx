@@ -1,0 +1,16 @@
+---
+slug: legibility-over-capability
+statement: A more powerful model that costs comprehension is the weaker model.
+order: 3
+published: true
+---
+
+Expressiveness is easy to add and hard to price. Every capability added to a builder, an editor or a configuration surface costs something in legibility, and the cost is paid by a different person than the one who benefits from the capability.
+
+The test is not what the model can express. It is whether a user can read back what they just built and verify it is what they meant. A query nobody can verify produces results nobody should trust, which makes the added expressiveness worth less than nothing.
+
+The clearest evidence is a rejection rather than a shipped feature. On the author search platform, a nested filter builder could express everything the query engine accepted. It was set aside because it hid the query behind a modal and made structure something to parse rather than read.
+
+## Not a licence for simplicity
+
+This does not argue for less capable systems. The structural work done in the rejected direction — group semantics, operator inheritance, the leading row rendered as a label rather than a disabled control — carried into what shipped. The goal is capability that costs nothing to read, not capability given up.

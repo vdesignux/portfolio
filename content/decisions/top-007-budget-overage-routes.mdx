@@ -1,0 +1,41 @@
+---
+ref: TOP-007
+title: Budget is allocated at the event and enforced at the package; overage routes rather than blocks
+project: travel-operations-platform
+status: shipped
+authority: owned
+expresses: [exceptions-never-silent]
+supersedes: null
+supersededBy: null
+relatedTo: [TOP-002, TOP-004]
+evidencedBy: [budget-allocation-and-enforcement]
+resolved: true
+---
+
+## Context
+
+Budget existed in the client's process before the platform did — sponsors set it per event. It was not actionable. Travel users guessed their per-doctor allocation, overspend was caught late, and enforcement meant someone checking by hand.
+
+The allocation is defined at the event because that is how sponsors define it. It is spent at the package, because that is where selections are made and money is committed. The allowance itself is derived rather than entered: the sponsor grant less the platform fee.
+
+## Decision
+
+Budget lives at the event level and is enforced at the package level. Each package shows allocated, spent and remaining as a continuous gradient, visible during selection rather than checked afterwards.
+
+Exceeding the allocation does not block the work. It routes for approval and records the exception.
+
+## Alternatives considered
+
+**Hard block at the allowance.** Rejected. Overage happens for legitimate reasons — a late booking, an unusual routing requirement — and a hard block moves the resolution offline, which is the operating model the platform was built to replace.
+
+**Enforcement at the event only.** Rejected. Event-level totals cannot tell a travel user whether the package in front of them is affordable at the moment of selection.
+
+## Consequences
+
+Budget stops being a reconciliation activity and becomes a constraint visible during assembly. Overage becomes a routed, logged event with a decision attached to it rather than a discrepancy discovered afterwards.
+
+This is the third decision on the project with the same shape as post-approval substitution and proxy confirmation: an authorized path, a reason, a notification, a record.
+
+## Provenance note
+
+This decision was carried in the case study narrative and in the budget artifact rather than as a numbered record. It is formalised here so the principle it demonstrates can be rendered from data rather than asserted in prose. The gradient thresholds observed on shipped screens are 0–60% green, 75% yellow, 90% orange, 100% red.

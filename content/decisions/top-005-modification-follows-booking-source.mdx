@@ -1,0 +1,47 @@
+---
+ref: TOP-005
+title: Modification capability follows booking source; blocked paths convert to requests
+project: travel-operations-platform
+status: shipped
+authority: owned
+expresses: [truth-at-the-boundary]
+supersedes: null
+supersededBy: null
+relatedTo: [TOP-001]
+evidencedBy: [core-object-model]
+resolved: false
+---
+
+## Context
+
+During review, a doctor can modify some parts of their package and not others. The rule is not a permission anyone grants, and it is not fixed by service type. It follows how the item was booked.
+
+Items booked through the flight search integration can be searched, repriced and rebooked in place. Items confirmed outside the system — negotiated fares, partner arrangements, anything actioned by phone — have no channel through which the platform can act. The capability boundary is the integration boundary.
+
+This resolves per segment, not per item. On a multi-city itinerary, one leg booked offline blocks only that leg; the others remain modifiable.
+
+The failure mode to avoid was offering an edit that would silently fail, or blocking with no exit — the latter pushes the doctor back to email and phone, which is the operating model the platform was built to replace.
+
+## Decision
+
+Where modification is not possible, state it plainly at the point of attempt and name what is blocked, including the specific segment.
+
+Pair the block with a structured help request rather than a contact instruction. The request carries a category — flight, hotel, transfer, visa, insurance, sponsorship package — and a mandatory free-text description. On submission the doctor is told they will be contacted.
+
+## Alternatives considered
+
+**Hide unmodifiable items.** Rejected. The doctor loses sight of their own itinerary, and the absence is unexplained.
+
+**Allow the edit and fail at execution.** Rejected. Moves the failure past the point of intent, which is the pattern TOP-001 already produces once and should not repeat.
+
+**Block with a contact instruction only.** Rejected. The coordination happens regardless; without a structured request it happens outside the system and leaves no record.
+
+## Consequences
+
+The source attribute now governs three separate behaviours: whether block contention applies at assembly, whether confirmation arrives automatically or by upload, and whether an item can be modified after booking. One attribute, three subsystems — coherent, but it means changing how an item is sourced changes its behaviour in ways not visible from the item alone.
+
+Help request categories span the whole package, not just flights. The mechanism is the platform's general path for offline coordination, surfaced wherever friction occurs rather than parked in a support page. Coordination that previously happened by email now enters the system as a categorised, described, timestamped request. The work is still done by a person; the record of it is not lost.
+
+## Open questions
+
+The request creates an obligation with no visible state on the package. Whether it is open, actioned or resolved is not reflected where the doctor or the admin would look for it.

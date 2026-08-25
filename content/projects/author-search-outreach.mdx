@@ -1,0 +1,207 @@
+---
+title: Author search and outreach platform
+subtitle: Finding and contacting researchers for an academic publisher
+domain: Academic publishing
+role: Interaction design, information architecture
+period: 2026
+status: shipped
+claim: Interaction architecture and information architecture for a search-to-outreach platform
+thesis: "One workflow split across two systems, introducing delay and breaking traceability."
+authorityContext: Product requirements and filter specification provided. Filter model, import flow, and campaign information architecture designed within them.
+order: 2
+published: true
+---
+
+## Overview
+
+The product helps acquisition editors at an academic publisher find authors worth approaching and run outreach campaigns to them. Phase 1 shipped author search. Phase 2 added campaign execution, response handling and analytics — replacing a workflow where editors exported search results to CSV, worked them by hand, and sent from outside the system entirely.
+
+The engagement began with a product requirements document and a filters support specification already written, and covered two areas: the filter system for author search, and campaign management end to end.
+
+<Figure
+  src="/media/author-search/platform-overview.png"
+  alt="Search results and campaign list shown side by side"
+  caption="Two halves of one workflow that had previously lived in two systems."
+/>
+
+## Part one — Author search filters
+
+### The users already have a query language
+
+Acquisition editors search a corpus of academic authors and papers. Many come from research backgrounds and are fluent in PubMed syntax — they can write `(CRISPR[TI] OR "gene editing"[TIAB]) AND USA[AD]` without thinking about it.
+
+The platform supports a good portion of that. Boolean operators, parentheses grouping, phrase search, date ranges. Roughly half the field tags are unsupported, for three different reasons: some data isn't stored, some is stored but not exposed by the parser, and some syntax features aren't implemented.
+
+The first filter design was a flat list. Pick a field, pick a condition, enter a value, repeat. It worked for simple queries and failed on anything a researcher would actually want to ask, because a flat list cannot express a parenthesis.
+
+So the interface could represent less than the engine could. For users who already knew what the engine could do, that gap was the whole problem.
+
+<Figure
+  src="/media/author-search/basic-filters-v1.png"
+  alt="The first filter design: a flat list of field, condition and value rows"
+  caption="V1 — a flat list, which cannot express a parenthesis."
+/>
+
+### Two forces pulling opposite ways
+
+Making the builder more expressive is easy. Making it more expressive without making it unreadable is the actual problem.
+
+Editors are not sitting down to craft a query. They are working through a list of collections, under deadline, building cohorts for outreach. A builder that can express anything becomes one where you can't read your own query back — and a query you can't verify is one you don't trust the results of.
+
+Every capability added costs legibility. The work was finding the version where it didn't.
+
+### The iteration trail
+
+Seven versions over three weeks, each one moving a specific problem.
+
+<Iteration slug="filter-architecture" />
+
+### Three directions, explored in parallel
+
+The final round ran three approaches side by side rather than refining one.
+
+**Inline filters** — conditions rendered directly in the results view, applied as they are built.
+
+**Filter dropdown** — a compact menu-driven builder for quick single-condition filtering.
+
+**Nested filters** — a full modal builder supporting groups and mixed operators.
+
+<Figure
+  src="/media/author-search/three-directions.png"
+  alt="Inline filters, filter dropdown and nested filter modal shown side by side"
+  caption="Three directions carried far enough to be compared rather than described."
+/>
+
+### What the nested builder solved
+
+Nested filters answered the expressiveness question completely. Four structural decisions made it work, and each buys capability back at a cost the user doesn't have to think about.
+
+**Everything at the top level is a group.** A single condition and a five-condition group occupy the same slot, so the connector column never shifts position as a query grows. One pattern to learn instead of two, and complexity scales without the layout reorganising underneath.
+
+**Grouping makes precedence visible.** Operators can mix inside a group, which on its own would make `A OR B AND C` ambiguous. The group boundary resolves it — the parentheses are drawn as structure rather than typed as syntax. Nobody has to know whether AND binds tighter than OR, because they can see where the brackets are.
+
+**Operators inherit.** A new condition takes the group's existing logic unless it is changed deliberately. Uniform groups are the default and stay readable; mixing is possible but is an act rather than an accident.
+
+**The first row is a label, not a control.** The leading condition can't have a connector, so `Where` renders as fixed text rather than a disabled dropdown. One fewer thing to wonder about.
+
+<Figure
+  src="/media/author-search/nested-builder.png"
+  alt="Nested filter modal showing a group alongside a standalone condition"
+  caption="The nested builder — the most expressive of the three, and the one that was set aside."
+/>
+
+### Why inline shipped anyway
+
+Nested could express everything the engine could. It was still the wrong answer, and the reason is the whole argument of this project.
+
+The modal hid the query behind the results. Structure became something to parse rather than something to read, and verification — the thing editors actually need before trusting a cohort — moved a click away from the results it produced.
+
+Inline filters shipped instead. Numbered rows carry the sequence that nesting carried with indentation, and the collapsed state returns the page to what the query returned.
+
+A more powerful model that costs comprehension is the weaker model.
+
+<Decision decisionRef="ASO-001" />
+
+### Two rules about honesty
+
+Alongside the structural decisions, two behaviours govern what the interface admits.
+
+**Incomplete conditions stay inert.** A filter added without a value defaults its operator to "is equal to" and holds it in a disabled state until a value arrives. A half-built condition can't quietly participate in a query and skew results.
+
+**Unsupported controls aren't rendered.** For filters that don't take conditional operators, the operator selector doesn't appear at all — the value field follows directly from the filter selection. The interface doesn't offer a control the data layer can't honour.
+
+That second one runs through everything here. The support documentation is explicit about what the system can and cannot do and why, and the interface reflects it rather than presenting a uniform surface that fails unevenly.
+
+<Figure
+  src="/media/author-search/operator-absent.png"
+  alt="A filter rendered without an operator selector beside one that has it"
+  caption="The control is absent where the data layer can't honour it."
+/>
+
+### Components
+
+Two components carry the system: a conditional filter row, and a value chip. The row handles the connector, field, operator and value slots, with capacity for several chips before it overflows. The chip handles a selected value and its removal.
+
+Building these as components rather than drawing each state kept the builder's behaviour consistent across the modal, the inline view and the dropdown — three surfaces, one model.
+
+<Figure
+  src="/media/author-search/component-variants.png"
+  alt="Variants of the conditional filter row and value chip components"
+  caption="Three surfaces, one behavioural model."
+/>
+
+## Part two — Campaign management
+
+### Built from a specification, shaped by review
+
+Campaign management was new. The requirements document described a five-step flow — build a cohort, choose and edit a template, run a suppression and compliance check, review and send, then track delivery — with acceptance criteria attached to each. It was designed and prototyped against that specification and revised through client review rounds.
+
+{/* TODO — factual gap. What moved between the specification and what shipped? The dated trail runs from an IA pass, through prototypes on 17/03, an update on 18/03, and dashboard revisions on 20/03, 23/03 and 24/03. Several rounds moved something; name one or two. Do not publish this section until filled. */}
+
+### Information architecture first
+
+The module covers campaigns, lead lists, cohorts, templates, suppression and analytics — six areas that could easily have become six disconnected screens.
+
+The information architecture was worked before the screens, documenting each view's structure as header, table and available actions, so that the list of campaigns, the list of leads and the list detail view shared a spine rather than each being designed to its own logic.
+
+<Artifact slug="campaign-information-architecture" />
+
+### Suppression
+
+Before a campaign sends, the cohort is checked against suppression lists — unsubscribes, hard bounces, blocked domains, do-not-contact, opt-outs. Editors need to see how many recipients were removed and why, without the compliance step becoming a wall they learn to click past.
+
+Suppression runs before template selection rather than after, which is a change from the order the specification described.
+
+<Decision decisionRef="ASO-002" />
+
+{/* TODO — factual gap. The reordering is recorded; the reasoning behind it is not. State it in one sentence, in the register used elsewhere, or drop the sentence above and let the decision record carry it alone. */}
+
+{/* TODO — factual gap. Three versions of the suppressed list exist in the working file, plus a frame exploring options. What were the options, and what settled it? Separately: does the override path from the requirements document — justification, approval routing, audit log — appear in what shipped, or was it deferred? */}
+
+<Figure
+  src="/media/author-search/suppression.png"
+  alt="Suppression check showing removal counts by reason"
+  caption="Counts and reasons, before the message exists."
+/>
+
+### Analytics
+
+The dashboard resolved across three versions, and the movement is the interesting part.
+
+<Iteration slug="dashboard-structure" />
+
+V1 was tabular, built from the specification alone. V2 added charts, and doing so surfaced the actual problem: the charts restated the table. V3 reworked the table to remove the repetition, then added client KPIs and a top-and-bottom comparison, accepting a longer scroll in exchange for each block answering a different question.
+
+What shipped is four layers answering four questions. Cards for the state of things now. A trend for direction. Extremes for what to look at. Detail for everything else.
+
+A multi-campaign comparison view was explored and dropped — interesting enough to start a conversation that concluded it wasn't needed.
+
+<Figure
+  src="/media/author-search/analytics.png"
+  alt="Campaign analytics dashboard with KPI cards, trend, comparison and detail table"
+  caption="Four layers, four questions, no number stated twice."
+/>
+
+### Prototyping
+
+The flow was prototyped end to end rather than presented as static screens — cohort through to send. For a five-step process with branching at the suppression stage, a click-through is the only way to know whether the sequence holds, and it is what made client review rounds productive rather than theoretical.
+
+### Working inside an existing design system
+
+Both areas were built on the company's design system. Where it had a component, that component was used. Where it didn't — the conditional filter row, the value chip — new ones were built to match, so the additions read as part of the system rather than as exceptions inside it.
+
+{/* TODO — factual gap. Which components were genuinely new, and did any get adopted beyond this project? Adoption elsewhere is the strongest available evidence here; leave the claim out entirely if it can't be confirmed. */}
+
+## What would change
+
+{/* TODO — factual gap. One or two honest limitations, stated in the same register as the travel operations platform's list. Candidates observed in the working file, none yet confirmed: grouping stops at one level of nesting, which covers most real queries but not all; there is no way to read the query back as text for users who would rather see syntax; the relationship between filters targeting authors and filters targeting articles is not surfaced anywhere in the interface, though it changes what a query returns. */}
+
+## What carries forward
+
+The filter work came down to a single question asked repeatedly: does this addition cost the user anything they have to think about?
+
+Making everything a group, letting operators inherit, drawing the first row as a label, hiding controls the data can't support — each one adds capability or removes a decision without adding either. And the most capable version of the builder is the one that didn't ship, because expressiveness is only worth what it costs in legibility.
+
+<Callout type="provenance">
+Delivered as a client engagement. The client is not named; screens are shown with identifying marks removed. Product requirements and the filters support specification were authored elsewhere.
+</Callout>

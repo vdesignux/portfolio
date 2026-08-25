@@ -1,0 +1,33 @@
+---
+ref: ASO-002
+title: Suppression runs before template selection
+project: author-search-outreach
+status: shipped
+authority: owned
+expresses: []
+supersedes: null
+supersededBy: null
+relatedTo: []
+evidencedBy: [campaign-information-architecture]
+resolved: false
+---
+
+## Context
+
+The requirements document described a five-step campaign flow: build a cohort, choose and edit a template, run a suppression and compliance check, review and send, then track delivery. Suppression checks the cohort against unsubscribes, hard bounces, blocked domains, do-not-contact entries and opt-outs.
+
+## Decision
+
+The suppression check runs before template selection rather than after it.
+
+## Alternatives considered
+
+{/* TODO — the working file holds three versions of the suppressed list plus a frame exploring options. Record what the options were and what settled the ordering. Do not publish this record until this section is filled; an ADR with an empty alternatives section is weaker than no ADR. */}
+
+## Consequences
+
+{/* TODO — state the effect on the flow in one or two sentences. */}
+
+## Open questions
+
+Whether the override path described in the requirements document — justification, approval routing, audit log — appears in what shipped or was deferred has not been confirmed.

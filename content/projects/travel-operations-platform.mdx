@@ -1,0 +1,237 @@
+---
+title: Travel operations platform
+subtitle: Coordinating travel for healthcare professionals at medical conferences
+domain: Enterprise SaaS
+role: Product design, systems architecture
+period: 2025
+status: shipped
+claim: Object modelling and state architecture for a multi-role enterprise workflow
+thesis: "Identifying the true unit of work is what separates a working model from a plausible one."
+authorityContext: Designed against a business requirements document authored elsewhere, revised through rounds of client validation.
+order: 1
+published: true
+---
+
+## Overview
+
+The platform coordinates travel for healthcare professionals attending medical conferences — flights, hotels, transfers, registrations, approvals, budgets and bookings, across many events at once. At the start of the engagement, none of it happened inside a system. It happened across spreadsheets, email threads and phone calls. Travel users compiled itineraries into Excel files, sent them out for review, revised them by hand from offline feedback, and used the final version to coordinate with vendors.
+
+That wasn't a workaround. It was the operating model. The brief was to replace it.
+
+<Figure
+  src="/media/travel-ops/operating-model.png"
+  alt="Spreadsheet fragments and email threads annotated with manual follow-ups and no single source of truth"
+  caption="The operating model before the platform: coordination carried entirely by people."
+/>
+
+## The specification said Events
+
+Design started from a business requirements document written by a business analyst before design began. It organised the entire product around Event Management. Events are created by an Admin, approved by a Super Admin, and budgeted at the event level. Doctors and travel users are added to events. Packages are assigned to doctors as a step inside event setup.
+
+That structure matched how the client talked. Everything was an event — upcoming conferences, invitees per conference, budget per conference, approvals per conference. It was the natural language of the business and the whole team had absorbed it.
+
+Buried in the same document, inside the event approval requirements, was a single line: the event does not become visible to doctors until a package has been created for it.
+
+The event could not publish without a package. That dependency was already written down. It went unread structurally for weeks — by the specification, which never followed it through, and by the design work built on top of it.
+
+Which is a more honest account than the tidier version. The reframe wasn't a discovery that overturned the specification. It was noticing that the specification already contained the answer, pointing the opposite direction from its own table of contents.
+
+## Letting it break first
+
+Before that landed, the client asked for something that looked like a step backwards. They wanted to upload a package spreadsheet per doctor, let the doctor download it, and keep negotiating changes over email and calls.
+
+The request was met, deliberately.
+
+They had worked this way for years. Asking them to abandon it on assertion alone wasn't reasonable, and arguing wouldn't have moved anyone. So the file-based flow was built, shipped, and watched.
+
+It broke clearly. Every change needed a person to coordinate it. Versions diverged. Someone acted on a stale file and a booking had to be unwound. The system couldn't tell whether a package had been approved, revised or already actioned, because the moment the file left the system, control went with it.
+
+The useful part wasn't that it failed. It was that everyone saw the same failure at the same time, which is what made the next conversation possible.
+
+<Figure
+  src="/media/travel-ops/file-based-flow.png"
+  alt="The upload and download flow, showing the package leaving the system boundary into email"
+  caption="The package leaving the system boundary — and taking control with it."
+/>
+
+## The reframe
+
+The client's diagnosis was that the spreadsheet was the problem. The team's was that the Event module needed more features.
+
+Neither held. Any static artifact would have produced the same failure — a PDF, a form, a shared doc. The gap was that no object in the system could exist while incomplete, travel through several roles, carry its own state, and remain the single source of truth at every stage. Without that object, coordination had to be done by people.
+
+Budget was assigned per event but spent per doctor. Approvals happened per doctor. Bookings triggered per doctor. Different doctors inside one event sat at completely different stages — some still choosing flights while others had confirmed hotels weeks earlier.
+
+The Event was how the work was labelled. The Package was where the work lived.
+
+<Artifact slug="core-object-model" />
+
+The model makes the argument better than the paragraph does. Event to Package is one-to-many. Package to doctor is one at a time. That asymmetry is the reframe — work is grouped by conference but owned by a person.
+
+## Two lifecycles, one of them load-bearing
+
+The obvious objection is that Events do have states. They do — ongoing, completed. But those describe the conference's progression through the calendar. They don't gate anything, they don't govern permissions, and no work waits on them.
+
+The Package's states describe the work itself. What can be edited, who can see it, whether booking is allowed, whose turn it is.
+
+Two lifecycles. Only one carries the operation. Recognising that a container can have a lifecycle without being the unit of work was the distinction that unlocked the rest of the design.
+
+## State as the governing mechanism
+
+The Package is a single persistent object representing one doctor's complete travel plan. It exists from the moment assembly begins, through review, approval and booking, and remains as the record afterwards. The structure never changes. Only the state does.
+
+<Artifact slug="package-lifecycle-state-machine" />
+
+Six states shipped. Reject returns to Draft; Unlock returns to Under Review. Those are the same move at different points — any structural change re-enters the approval gate rather than routing around it. Bookings Completed has no exits.
+
+The transitions were documented formally for engineering, alongside two invariants the system had to hold.
+
+<Artifact slug="state-transition-table" />
+
+<Artifact slug="critical-dev-rules" />
+
+**Rule 1 — Approval invalidation.** If a package is edited after approval, it must return to Under Review.
+
+**Rule 2 — Booking constraint.** Booking is only allowed in Active state.
+
+Rule 2 solved a risk the client hadn't raised. Flights are dynamically priced, so a package assembled on Tuesday can cost meaningfully more by the time it is approved on Friday. The old process absorbed that by booking early to lock the fare — which meant acting on a plan the doctor hadn't agreed to. Making Active the only state where booking is possible put approval before financial commitment as a property of the system rather than a rule people had to remember.
+
+<Figure
+  src="/media/travel-ops/package-states.png"
+  alt="Package states rendered as UI cards"
+  caption="Package state as the primary signal in the interface."
+/>
+
+## The permission model had to change to match
+
+The specification put access control at the menu level for the first phase, deferring action-level and field-level granularity to later.
+
+That couldn't work. A menu permission answers whether a role can reach the Package module. It cannot answer whether that role can edit the package in front of it — and the entire state machine depends on exactly that distinction. Under Review means a doctor reads and comments but doesn't restructure. Draft means a travel user modifies freely but can't book.
+
+The permission model as specified could not express the system model as designed. Action-level permissions were pulled into phase one, and a resource-by-action matrix shipped.
+
+<Artifact slug="permission-tier-model" />
+
+Three consequences came out of that which weren't anticipated at the start.
+
+**Approve became a distinct action.** Not a variant of Update. Approval moves state and carries compliance weight in a sponsored-travel context, so it had to be separately grantable.
+
+**Permission tiers ended up mirroring the object hierarchy.** System, Event, Package. A role scoped to one tier cannot hold permissions above it, which means the tier that can create roles is the one tier a created role can never reach. Privilege ceiling as a property of the structure rather than a validation rule someone has to maintain.
+
+**State transitions became grantable permissions.** Send package for review. Approve event. Submit package over budget. The state machine defines what is possible; the permission model defines who can trigger it.
+
+Placed beside the object model, the point is hard to miss: the permission model is shaped like the object model. That wasn't planned. It is what happens when the objects are defined first.
+
+## Where the model strains
+
+Hotels are the one part of the system with finite supply.
+
+An admin curates room blocks from three sources — the sponsoring industry partner, the conference organizer, or the operator's own negotiated inventory. Each block divides into sub-blocks by room type, with a count and a rate. Travel users assembling a package select a source before they see results.
+
+<Artifact slug="hotel-source-taxonomy" />
+
+Blocks sit first, live search below them, manual entry last. Ordering does the work that a hard restriction would have done badly — the negotiated inventory is the path of least resistance without being a wall, so a travel user can still serve an unusual requirement. The real constraint is budget, visible throughout selection.
+
+Which raised the question this section exists for: when does a room actually leave the pool?
+
+Draft is explicitly non-committing. Nothing in Draft triggers a booking. So does selecting a room reserve it, or not?
+
+Consumption at booking shipped. Nothing is held earlier.
+
+The alternative was reserving on Draft, which starves inventory — an abandoned draft holds rooms indefinitely, and mitigating that needs expiry timers, release warnings and an override path. Substantial machinery for a state that commits to nothing.
+
+The consequence is real. Two travel users can build against the same last rooms, both get approval, and one discovers at booking that the room is gone. The failure surfaces *after* approval — the exact category of failure the state machine was built to prevent, relocated from the document layer to the inventory layer.
+
+In hindsight, reserving on Under Review is the stronger answer. It is the moment the doctor is asked to commit to something specific, so it is the moment the system's promise should hold, and the window is bounded enough to avoid the idle-draft problem.
+
+## An exception, designed rather than discovered
+
+That decision created a second problem. When a block runs out after approval, someone has to substitute.
+
+Rule 1 says a package edited after approval returns to Under Review. Substitution violates it. The first answer honoured the rule — send it back to the doctor.
+
+The client pushed back, and they were right. Under scarcity, waiting for re-approval loses the substitute too. And doctors approve attending a conference with reasonable accommodation, not a specific named hotel.
+
+So the travel user can rebook without re-approval. A written reason is mandatory. The doctor and the admin are both notified. The package stays in its booking phase; the audit log holds what changed.
+
+That is a carve-out from an invariant stated earlier in the same design, and it is worth presenting as one rather than smoothing over. It is narrow by construction — it applies only where inventory vanished after the gate closed. Structural changes before booking still re-enter approval through Unlock.
+
+The same shape shows up elsewhere. Budget overage doesn't block the work, it routes for approval and logs the exception. And when a doctor goes unresponsive against a conference deadline, a travel user can confirm on their behalf — a first-class transition sitting beside doctor approval, requiring a written reason, with the doctor notified.
+
+That last one is the sharpest. Approval exists partly as compliance evidence that a sponsored doctor agreed to what was funded, and proxy confirmation weakens exactly that. It was still the right call: a package that cannot move is worse than one that moves with a record of why, and the alternative was the workaround happening offline where nothing could see it.
+
+## What the system can't do, it says
+
+Doctors can change parts of their own package during review. Not all of it — and what is changeable isn't a permission anyone grants. It follows how the item was booked.
+
+Anything booked through the flight search integration can be searched, repriced and rebooked in place. Anything confirmed outside the system — a negotiated fare, a partner arrangement, something sorted by phone — has no channel through which the platform can act. The capability boundary is the integration boundary, and it resolves per segment: on a multi-city itinerary, one offline leg blocks only that leg.
+
+The design question was what to do at the edge of what the system can reach.
+
+Hiding the unmodifiable segment would have left an unexplained absence in the doctor's own itinerary. Letting them try and failing at execution would repeat the pattern the inventory decision already produces once. Blocking with "please contact your travel user" would have been honest and useless — the coordination happens either way, and that version puts it back in email.
+
+So the block states exactly what is unavailable and which leg it applies to, and hands over a structured request: a category, a required description, a confirmation that someone will be in touch. The categories cover the whole package rather than just flights, which makes it the general path for anything the platform can't action directly.
+
+The work still gets done by a person. It just stops being invisible while it happens.
+
+<Figure
+  src="/media/travel-ops/blocked-modification.png"
+  alt="A blocked flight modification paired with a structured help request modal"
+  caption="The capability boundary, stated at the point of attempt and paired with a way through."
+/>
+
+## Budget moved down without moving
+
+Budget existed in the client's process — sponsors set it per event. It just wasn't actionable. Travel users guessed their per-doctor allocation, overspend was caught late, and enforcement meant someone checking manually.
+
+Budgets live at the event level, because that is how sponsors define them. Enforcement moved to the Package, because that is where money is actually spent. Each package shows allocated, spent and remaining as a continuous gradient — visible during selection rather than checked afterwards. Exceeding the allocation doesn't block the work; it routes for approval and records the exception.
+
+<Artifact slug="budget-allocation-and-enforcement" />
+
+<Figure
+  src="/media/travel-ops/budget-tracker.png"
+  alt="Package budget tracker showing allocated, spent and remaining as a gradient"
+  caption="Budget visible during selection rather than checked afterwards."
+/>
+
+## Visibility instead of conversation
+
+As the module grew, multiple travel users started handling different services for the same event. The obvious answer was chat.
+
+The case against it wasn't that chat is hard to build. It is that decisions made in chat leave the system. When two people resolve something in a thread, that resolution is invisible to the Package — no audit trail, no state change, no way to verify that what was agreed was what happened. Chat treats coordination as a communication problem. The actual problem was visibility.
+
+What shipped instead: a context panel carrying event details, doctor profile and preferences, assigned team members and a full audit log — plus per-item attribution on the package itself, so every flight, hotel and transfer shows who added it. Collaboration through shared visibility rather than parallel conversation.
+
+<Figure
+  src="/media/travel-ops/context-panel.png"
+  alt="Package assembly view with context panel and per-item attribution"
+  caption="Every line on the package carries its author."
+/>
+
+## What would change
+
+**The Active state doesn't distinguish how it was reached.** A package approved by the doctor and a package confirmed by a travel user on their behalf render identically. The distinction lives only in the audit log. For something that functions as compliance evidence, that is too deep to bury — a marker on the package would have cost almost nothing.
+
+**Substitution is invisible in state.** Same underlying issue. State tracks progress through booking, not conformance to what was approved. Detecting divergence means reading the log.
+
+**One term shipped ambiguous.** The source taxonomy reads "IP Blocks" alongside "Organizer Block" and "Direct Block" — an initialism requiring domain knowledge sitting beside two plain-language terms. A lexicon should have been a deliverable, and it wasn't.
+
+**Help requests have no state on the package.** When a doctor submits one, the work moves to a person and the package shows nothing. Whether the request is open, actioned or resolved isn't visible where anyone would look for it. Every other exception in the system produces a record on the object; this one produces a record somewhere else.
+
+## What carries forward
+
+The line this used to close on was *define the object before designing the flow*. Still true, and now largely uncontroversial.
+
+The more useful thing is narrower.
+
+Every real system needs exceptions. Inventory runs out after approval. Budgets get exceeded for good reasons. People go unresponsive against deadlines. A system that forbids these doesn't prevent them — it pushes them offline, into email and phone calls, where nothing can see them. That is precisely where this client started.
+
+So the design question isn't whether to permit exceptions. It is whether the system can hold them.
+
+**Permit exceptions. Never silent ones.**
+
+Each one gets an authorized path, a mandatory reason, a notification and a record. That principle produced three separate decisions on this project, made months apart on problems that had nothing in common — and it has held on every system since.
+
+<Callout type="provenance">
+Delivered as a client engagement. Product design led against a business requirements document authored elsewhere, revised through rounds of client validation. The client is not named; screens are shown with identifying marks removed.
+</Callout>
